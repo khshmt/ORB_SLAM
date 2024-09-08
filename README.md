@@ -75,39 +75,24 @@ We make use of some components of the DBoW2 and DLib library (see original at ht
 
 		git clone https://github.com/raulmur/ORB_SLAM.git ORB_SLAM
 		
-3. Add the path where you cloned ORB-SLAM to the `ROS_PACKAGE_PATH` environment variable. To do this, modify your .bashrc and add at the bottom the following line (replace PATH_TO_PARENT_OF_ORB_SLAM):
+3. Build Dependcies:
+	
+	```
+	cd ORB_SLAM 
+	./build_deps.bash
+	```
+	*Tip: Set your favorite compilation flags in  `Thirdparty/g2o/CMakeLists.txt` and `Thirdparty/DBoW2/CMakeLists.txt` (by default -03 -march=native)
 
-		export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:PATH_TO_PARENT_OF_ORB_SLAM
+4. Build ORB_SLAM. In the ORB_SLAM root execute:
 
-4. Build g2o. Go into `Thirdparty/g2o/` and execute:
-
-		mkdir build
-		cd build
-		cmake .. -DCMAKE_BUILD_TYPE=Release
-		make 
-
-	*Tip: To achieve the best performance in your computer, set your favorite compilation flags in line 61 and 62 of* `Thirdparty/g2o/CMakeLists.txt` 
-		  (by default -03 -march=native)
-
-5. Build DBoW2. Go into Thirdparty/DBoW2/ and execute:
-
-		mkdir build
-		cd build
-		cmake .. -DCMAKE_BUILD_TYPE=Release
-		make  
-
-	*Tip: Set your favorite compilation flags in line 4 and 5 of* `Thirdparty/DBoW2/CMakeLists.txt` (by default -03 -march=native)
-
-6. Build ORB_SLAM. In the ORB_SLAM root execute:
-
-	**If you use ROS Indigo, remove the depency of opencv2 in the manifest.xml.**
-
+	**If you use ROS Indigo or higher ROS version like noetic, remove the depency of opencv2 in the manifest.xml.**
+		
 		mkdir build
 		cd build
 		cmake .. -DROS_BUILD_TYPE=Release
 		make
 
-	*Tip: Set your favorite compilation flags in line 12 and 13 of* `./CMakeLists.txt` (by default -03 -march=native)
+	*Tip: Set your favorite compilation flags in* `./CMakeLists.txt` (by default -03 -march=native)
 
 #4. Usage
 
