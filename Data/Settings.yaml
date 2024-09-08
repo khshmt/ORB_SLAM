@@ -3,19 +3,19 @@
 # Camera Parameters. Adjust them!
 
 # Camera calibration parameters (OpenCV) 
-Camera.fx: 609.2855
-Camera.fy: 609.3422 
-Camera.cx: 351.4274
-Camera.cy: 237.7324
+Camera.fx: 908.2022984634602
+Camera.fy: 910.7320414618251 
+Camera.cx: 697.707173995749
+Camera.cy: 544.0834693577709
 
 # Camera distortion paremeters (OpenCV) --
-Camera.k1: -0.3492
-Camera.k2: 0.1363
-Camera.p1: 0.0
-Camera.p2: 0.0
+Camera.k1: -0.1669852237557412
+Camera.k2: 0.09440691476927063
+Camera.p1: 0.0002690896049612768
+Camera.p2: -0.0005139322424783633
 
 # Camera frames per second 
-Camera.fps: 30.0
+Camera.fps: 20.0
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
 Camera.RGB: 1

@@ -10,7 +10,7 @@
 #ifndef __D_T_F_ORB__
 #define __D_T_F_ORB__
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <vector>
 #include <string>
 
