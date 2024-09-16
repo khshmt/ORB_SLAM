@@ -79,7 +79,13 @@ We make use of some components of the DBoW2 and DLib library (see original at ht
 	
 	```
 	cd ORB_SLAM 
-	./build_deps.bash
+	source build_deps.bash
+	```
+	In case of using zshell
+	
+	```
+	cd ORB_SLAM 
+	source build_deps.zsh
 	```
 	*Tip: Set your favorite compilation flags in  `Thirdparty/g2o/CMakeLists.txt` and `Thirdparty/DBoW2/CMakeLists.txt` (by default -03 -march=native)
 
@@ -125,13 +131,9 @@ If you have a sequence with individual image files, you will need to generate a 
 
 **Tip: Use a roslaunch to launch `ORB_SLAM`, `image_view` and `rviz` from just one instruction. We provide an example**:
 
-*in ROS Fuerte*:
-
-	roslaunch ExampleFuerte.launch
-
 *in ROS Groovy or a newer version*:
 
-	roslaunch ExampleGroovyOrNewer.launch
+	roslaunch Example.launch
 
 
 #5. Example Sequence

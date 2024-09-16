@@ -35,6 +35,6 @@ tar -xf ORBvoc.txt.tar.gz
 echo -e '\033[0;32m***Vocab File Extraction Done***\e[0m';
 
 cd ${PROJECT_DIR};
-. /opt/ros/noetic/setup.bash;
+/bin/zsh /opt/ros/noetic/setup.zsh;
 export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:${PROJECT_PARENT_DIR};
 echo -e '\033[0;32m***ROS_PACKAGE_PATH Updated***\e[0m';
