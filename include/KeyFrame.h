@@ -156,7 +156,7 @@ public:
     long unsigned int mnBALocalForKF;
     long unsigned int mnBAFixedForKF;
 
-    // Variables used by the keyframe database
+    // Variables used by the keyframe database (this variables could change with each loop detected)
     long unsigned int mnLoopQuery;
     int mnLoopWords;
     float mLoopScore;
@@ -167,7 +167,7 @@ public:
     // Calibration parameters
     float fx, fy, cx, cy;
 
-    //BoW
+    //BoW of this key frames [<word_id, word_value>, <word_id, word_value>, ...]
     DBoW2::BowVector mBowVec;
 
     static bool weightComp( int a, int b){

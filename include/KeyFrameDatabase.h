@@ -21,54 +21,51 @@
 #ifndef KEYFRAMEDATABASE_H
 #define KEYFRAMEDATABASE_H
 
-#include <vector>
+// STD
 #include <list>
+#include <mutex>
 #include <set>
-
-#include "KeyFrame.h"
+#include <thread>
+#include <vector>
+// ORB_SLAM
 #include "Frame.h"
+#include "KeyFrame.h"
 #include "ORBVocabulary.h"
+// ThirdParty
+#include "Thirdparty/DBoW2/DBoW2/BowVector.h"
 
-#include<boost/thread.hpp>
-
-
-namespace ORB_SLAM
-{
+namespace ORB_SLAM {
 
 class KeyFrame;
 class Frame;
 
+class KeyFrameDatabase {
+   public:
+    KeyFrameDatabase(const ORBVocabulary& voc);
 
-class KeyFrameDatabase
-{
-public:
+    void add(KeyFrame* pKF);
 
-    KeyFrameDatabase(const ORBVocabulary &voc);
+    void erase(KeyFrame* pKF);
 
-   void add(KeyFrame* pKF);
+    void clear();
 
-   void erase(KeyFrame* pKF);
+    // Loop Detection
+    std::vector<KeyFrame*> DetectLoopCandidates(KeyFrame* pKF, float minScore);
 
-   void clear();
+    // Relocalisation
+    std::vector<KeyFrame*> DetectRelocalisationCandidates(Frame* F);
 
-   // Loop Detection
-   std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
+   protected:
+    // Associated vocabulary
+    const ORBVocabulary* mpVoc;
 
-   // Relocalisation
-   std::vector<KeyFrame*> DetectRelocalisationCandidates(Frame* F);
+    // Inverted file
+    std::vector<list<KeyFrame*>> mvInvertedFile;
 
-protected:
-
-  // Associated vocabulary
-  const ORBVocabulary* mpVoc;
-
-  // Inverted file
-  std::vector<list<KeyFrame*> > mvInvertedFile;
-
-  // Mutex
-  boost::mutex mMutex;
+    // Mutex
+    std::mutex mMutex;
 };
 
-} //namespace ORB_SLAM
+}  //namespace ORB_SLAM
 
 #endif

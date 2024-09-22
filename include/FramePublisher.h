@@ -21,41 +21,37 @@
 #ifndef FRAMEPUBLISHER_H
 #define FRAMEPUBLISHER_H
 
-#include "Tracking.h"
-#include "MapPoint.h"
 #include "Map.h"
+#include "MapPoint.h"
+#include "Tracking.h"
 
 #include "ros/ros.h"
 
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
-#include<boost/thread.hpp>
+#include <boost/thread.hpp>
 
-
-namespace ORB_SLAM
-{
+namespace ORB_SLAM {
 
 class Tracking;
 
-class FramePublisher
-{
-public:
-    FramePublisher();    
+class FramePublisher {
+   public:
+    FramePublisher();
 
-    void Update(Tracking *pTracker);
+    void Update(Tracking* pTracker);
 
     void Refresh();
 
     void SetMap(Map* pMap);
 
-protected:
-
+   protected:
     cv::Mat DrawFrame();
 
     void PublishFrame();
 
-    void DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText);
+    void DrawTextInfo(cv::Mat& im, int nState, cv::Mat& imText);
 
     cv::Mat mIm;
     vector<cv::KeyPoint> mvCurrentKeys;
@@ -79,6 +75,6 @@ protected:
     boost::mutex mMutex;
 };
 
-} //namespace ORB_SLAM
+}  //namespace ORB_SLAM
 
-#endif // FRAMEPUBLISHER_H
+#endif  // FRAMEPUBLISHER_H
