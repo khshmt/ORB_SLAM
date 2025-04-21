@@ -60,7 +60,7 @@ std::vector<KeyFrame*> KeyFrameDatabase::DetectLoopCandidates(KeyFrame* pKF, flo
         std::unique_lock lock(mMutex);
 
         for (const auto& bow : pKF->mBowVec) {
-            auto& lKFs = mvInvertedFile[bow.first];
+            auto& lKFs = mvInvertedFile[bow.first]; // all the keyframes shares the same feature(word)
 
             for (auto pKFi : lKFs) {
                 if (pKFi->mnLoopQuery != pKF->mnId) {
@@ -77,7 +77,7 @@ std::vector<KeyFrame*> KeyFrameDatabase::DetectLoopCandidates(KeyFrame* pKF, flo
     }
 
     if (lKFsSharingWords.empty())
-        return std::vector<KeyFrame*>();
+        return {}; // return empty vector ==>> no Loop closure detected
 
     std::list<std::pair<float, KeyFrame*>> lScoreAndMatch;
 

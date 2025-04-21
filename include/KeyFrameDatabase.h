@@ -60,6 +60,7 @@ class KeyFrameDatabase {
     const ORBVocabulary* mpVoc;
 
     // Inverted file
+    // {word0[kf1, kf3, kf5], word1[kf10, kf6m, kf3], word2[kf0m, kf1], ...}
     std::vector<list<KeyFrame*>> mvInvertedFile;
 
     // Mutex

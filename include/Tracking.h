@@ -178,7 +178,7 @@ protected:
     //Color order (true RGB, false BGR, ignored if grayscale)
     bool mbRGB;
 
-    // Transfor broadcaster (for visualization in rviz)
+    // Transform broadcaster (for visualization in rviz)
     tf::TransformBroadcaster mTfBr;
 };
 

@@ -165,6 +165,7 @@ void Tracking::Run()
     ros::spin();
 }
 
+// Images callback
 void Tracking::GrabImage(const sensor_msgs::ImageConstPtr& msg)
 {
 
