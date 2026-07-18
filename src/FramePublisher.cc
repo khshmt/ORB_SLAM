@@ -132,7 +132,7 @@ void FramePublisher::PublishFrame() {
 void FramePublisher::DrawTextInfo(cv::Mat& im, int nState, cv::Mat& imText) {
     stringstream s;
     if (nState == Tracking::NO_IMAGES_YET)
-        s << "WAITING FOR IMAGES. (Topic: /camera/image_raw)";
+        s << "WAITING FOR IMAGES. (Topic: /cam0/image_raw)";
     else if (nState == Tracking::NOT_INITIALIZED)
         s << " NOT INITIALIZED ";
     else if (nState == Tracking::INITIALIZING)
