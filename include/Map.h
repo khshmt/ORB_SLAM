@@ -21,11 +21,11 @@
 #ifndef MAP_H
 #define MAP_H
 
+#include<set>
+#include <thread>
+
 #include "MapPoint.h"
 #include "KeyFrame.h"
-#include<set>
-
-#include<boost/thread.hpp>
 
 
 
@@ -41,9 +41,9 @@ public:
     Map();
 
     void AddKeyFrame(KeyFrame* pKF);
+    void EraseKeyFrame(KeyFrame* pKF);
     void AddMapPoint(MapPoint* pMP);
     void EraseMapPoint(MapPoint* pMP);
-    void EraseKeyFrame(KeyFrame* pKF);
     void SetCurrentCameraPose(cv::Mat Tcw);
     void SetReferenceKeyFrames(const std::vector<KeyFrame*> &vpKFs);
     void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
@@ -66,14 +66,16 @@ public:
     void clear();
 
 protected:
-    std::set<MapPoint*> mspMapPoints;
-    std::set<KeyFrame*> mspKeyFrames;
+    std::set<MapPoint*> mspMapPoints; // all keyFrames in the map
+    std::set<KeyFrame*> mspKeyFrames; // all mapPoints in the map
 
+    // reference mapPoints is the points that is shared between all the keyframes
+    // in the initialMap
     std::vector<MapPoint*> mvpReferenceMapPoints;
 
     unsigned int mnMaxKFid;
 
-    boost::mutex mMutexMap;
+    std::mutex mMutexMap;
     bool mbMapUpdated;
 };
 

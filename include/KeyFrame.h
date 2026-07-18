@@ -182,8 +182,8 @@ public:
 protected:
 
     // SE3 Pose and camera center
-    cv::Mat Tcw;
-    cv::Mat Ow;
+    cv::Mat Tcw; // world to camera
+    cv::Mat Ow; // camera origin referenced in world frame
 
     // Original image, undistorted image bounds, and calibration matrix
     cv::Mat im;

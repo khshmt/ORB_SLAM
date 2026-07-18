@@ -30,6 +30,7 @@
 namespace ORB_SLAM
 {
 
+// Construtor With argument
 Initializer::Initializer(const Frame &ReferenceFrame, float sigma, int iterations)
 {
     mK = ReferenceFrame.mK.clone();
@@ -41,6 +42,8 @@ Initializer::Initializer(const Frame &ReferenceFrame, float sigma, int iteration
     mMaxIterations = iterations;
 }
 
+// main function to be called after initializing an object of the Initializer class
+
 bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatches12, cv::Mat &R21, cv::Mat &t21,
                              vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated)
 {
@@ -51,28 +54,23 @@ bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatc
     mvMatches12.clear();
     mvMatches12.reserve(mvKeys2.size());
     mvbMatched1.resize(mvKeys1.size());
-    for(size_t i=0, iend=vMatches12.size();i<iend; i++)
-    {
-        if(vMatches12[i]>=0)
-        {
-            mvMatches12.push_back(make_pair(i,vMatches12[i]));
-            mvbMatched1[i]=true;
+    int i{0};
+    for (const auto match12 : vMatches12) {
+        if (match12 >= 0) {
+            mvMatches12.push_back(std::make_pair(i, match12));
+            mvbMatched1[i] = true;
+        } else {
+            mvbMatched1[i] = false;
         }
-        else
-            mvbMatched1[i]=false;
+        ++i;
     }
 
     const int N = mvMatches12.size();
 
     // Indices for minimum set selection
-    vector<size_t> vAllIndices;
-    vAllIndices.reserve(N);
+    vector<size_t> vAllIndices(N);
     vector<size_t> vAvailableIndices;
-
-    for(int i=0; i<N; i++)
-    {
-        vAllIndices.push_back(i);
-    }
+    std::iota(std::begin(vAllIndices), std::end(vAllIndices), 0);
 
     // Generate sets of 8 points for each RANSAC iteration
     mvSets = vector< vector<size_t> >(mMaxIterations,vector<size_t>(8,0));
@@ -96,15 +94,17 @@ bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatc
 
     // Launch threads to compute in parallel a fundamental matrix and a homography
     vector<bool> vbMatchesInliersH, vbMatchesInliersF;
-    float SH, SF;
-    cv::Mat H, F;
+    float SH, SF; // score of fundmental matrix, score of homography matrix
+    cv::Mat H, F; // Homography matrix, Fundamental matrix
 
-    boost::thread threadH(&Initializer::FindHomography,this,boost::ref(vbMatchesInliersH), boost::ref(SH), boost::ref(H));
-    boost::thread threadF(&Initializer::FindFundamental,this,boost::ref(vbMatchesInliersF), boost::ref(SF), boost::ref(F));
+    std::thread threadH(&Initializer::FindHomography,this,std::ref(vbMatchesInliersH), std::ref(SH), std::ref(H));
+    std::thread threadF(&Initializer::FindFundamental,this,std::ref(vbMatchesInliersF), std::ref(SF), std::ref(F));
 
     // Wait until both threads have finished
-    threadH.join();
-    threadF.join();
+    if (threadH.joinable())
+        threadH.join();
+    if (threadF.joinable())
+        threadF.join();
 
     // Compute ratio of scores
     float RH = SH/(SH+SF);
@@ -118,10 +118,10 @@ bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatc
     return false;
 }
 
-
+// Homography is a matrix specifying the transformation between two views of images.
 void Initializer::FindHomography(vector<bool> &vbMatchesInliers, float &score, cv::Mat &H21)
 {
-    // Number of putative matches
+    // Number of putative matches from reference to current frame
     const int N = mvMatches12.size();
 
     // Normalize coordinates
@@ -744,6 +744,7 @@ void Initializer::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, 
     x3D = x3D.rowRange(0,3)/x3D.at<float>(3);
 }
 
+// compute the normalized points(vNormalizedPoints) from non-normailzed points(vKeys) and compute the normalization matrix(T)
 void Initializer::Normalize(const vector<cv::KeyPoint> &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
 {
     float meanX = 0;
@@ -785,6 +786,8 @@ void Initializer::Normalize(const vector<cv::KeyPoint> &vKeys, vector<cv::Point2
         vNormalizedPoints[i].y = vNormalizedPoints[i].y * sY;
     }
 
+    // normalization/conditioning matrix
+    // improves the stability
     T = cv::Mat::eye(3,3,CV_32F);
     T.at<float>(0,0) = sX;
     T.at<float>(1,1) = sY;

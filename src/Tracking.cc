@@ -157,6 +157,7 @@ void Tracking::SetKeyFrameDatabase(KeyFrameDatabase *pKFDB)
     mpKeyFrameDB = pKFDB;
 }
 
+// The Main Thread
 void Tracking::Run()
 {
     ros::NodeHandle nodeHandler;
@@ -197,13 +198,16 @@ void Tracking::GrabImage(const sensor_msgs::ImageConstPtr& msg)
         cv_ptr->image.copyTo(im);
     }
 
+    // the difference between the following branches:
+    // is the OrbExtractor Variable used, is it for initialization or not?
+    // because the used for initialization require more features
+    // mpORBextractor vs mpIniORBextractor
     if(mState==WORKING || mState==LOST)
         mCurrentFrame = Frame(im,cv_ptr->header.stamp.toSec(),mpORBextractor,mpORBVocabulary,mK,mDistCoef);
     else
         mCurrentFrame = Frame(im,cv_ptr->header.stamp.toSec(),mpIniORBextractor,mpORBVocabulary,mK,mDistCoef);
 
     // Depending on the state of the Tracker we perform different tasks
-
     if(mState==NO_IMAGES_YET)
     {
         mState = NOT_INITIALIZED;
@@ -301,39 +305,31 @@ void Tracking::GrabImage(const sensor_msgs::ImageConstPtr& msg)
     // Update drawer
     mpFramePublisher->Update(this);
 
-    if(!mCurrentFrame.mTcw.empty())
-    {
-        cv::Mat Rwc = mCurrentFrame.mTcw.rowRange(0,3).colRange(0,3).t();
-        cv::Mat twc = -Rwc*mCurrentFrame.mTcw.rowRange(0,3).col(3);
-        tf::Matrix3x3 M(Rwc.at<float>(0,0),Rwc.at<float>(0,1),Rwc.at<float>(0,2),
-                        Rwc.at<float>(1,0),Rwc.at<float>(1,1),Rwc.at<float>(1,2),
-                        Rwc.at<float>(2,0),Rwc.at<float>(2,1),Rwc.at<float>(2,2));
+    if (!mCurrentFrame.mTcw.empty()) {
+        cv::Mat Rwc = mCurrentFrame.mTcw.rowRange(0, 3).colRange(0, 3).t();
+        cv::Mat twc = -Rwc * mCurrentFrame.mTcw.rowRange(0, 3).col(3);
+        tf::Matrix3x3 M(Rwc.at<float>(0, 0), Rwc.at<float>(0, 1), Rwc.at<float>(0, 2), Rwc.at<float>(1, 0),
+                        Rwc.at<float>(1, 1), Rwc.at<float>(1, 2), Rwc.at<float>(2, 0), Rwc.at<float>(2, 1),
+                        Rwc.at<float>(2, 2));
         tf::Vector3 V(twc.at<float>(0), twc.at<float>(1), twc.at<float>(2));
-
-        tf::Transform tfTcw(M,V);
-
-        mTfBr.sendTransform(tf::StampedTransform(tfTcw,ros::Time::now(), "ORB_SLAM/World", "ORB_SLAM/Camera"));
+        tf::Transform tfTcw(M, V);
+        mTfBr.sendTransform(tf::StampedTransform(tfTcw, ros::Time::now(), "ORB_SLAM/World", "ORB_SLAM/Camera"));
     }
-
 }
 
-
-void Tracking::FirstInitialization()
-{
+void Tracking::FirstInitialization() {
     //We ensure a minimum ORB features to continue, otherwise discard frame
-    if(mCurrentFrame.mvKeys.size()>100)
-    {
+    if (mCurrentFrame.mvKeys.size() > 100) {
         mInitialFrame = Frame(mCurrentFrame);
         mLastFrame = Frame(mCurrentFrame);
         mvbPrevMatched.resize(mCurrentFrame.mvKeysUn.size());
-        for(size_t i=0; i<mCurrentFrame.mvKeysUn.size(); i++)
-            mvbPrevMatched[i]=mCurrentFrame.mvKeysUn[i].pt;
+        for (size_t i = 0; i < mCurrentFrame.mvKeysUn.size(); i++)
+            mvbPrevMatched[i] = mCurrentFrame.mvKeysUn[i].pt;
 
-        if(mpInitializer)
+        if (mpInitializer)
             delete mpInitializer;
 
-        mpInitializer =  new Initializer(mCurrentFrame,1.0,200);
-
+        mpInitializer = new Initializer(mCurrentFrame, 1.0, 200);
 
         mState = INITIALIZING;
     }
@@ -374,7 +370,6 @@ void Tracking::Initialize()
                 nmatches--;
             }           
         }
-
         CreateInitialMap(Rcw,tcw);
     }
 
@@ -400,8 +395,8 @@ void Tracking::CreateInitialMap(cv::Mat &Rcw, cv::Mat &tcw)
     mpMap->AddKeyFrame(pKFcur);
 
     // Create MapPoints and asscoiate to keyframes
-    for(size_t i=0; i<mvIniMatches.size();i++)
-    {
+    for(size_t i=0; i<mvIniMatches.size();i++) {
+        // to escape the unTriangulated points
         if(mvIniMatches[i]<0)
             continue;
 
@@ -424,9 +419,8 @@ void Tracking::CreateInitialMap(cv::Mat &Rcw, cv::Mat &tcw)
 
         //Add to Map
         mpMap->AddMapPoint(pMP);
-
     }
-
+    // ## Hshmt Stooped Here
     // Update Connections
     pKFini->UpdateConnections();
     pKFcur->UpdateConnections();

@@ -31,7 +31,7 @@ Map::Map()
 
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mspKeyFrames.insert(pKF);
     if(pKF->mnId>mnMaxKFid)
         mnMaxKFid=pKF->mnId;
@@ -40,84 +40,84 @@ void Map::AddKeyFrame(KeyFrame *pKF)
 
 void Map::AddMapPoint(MapPoint *pMP)
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mspMapPoints.insert(pMP);
     mbMapUpdated=true;
 }
 
 void Map::EraseMapPoint(MapPoint *pMP)
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mspMapPoints.erase(pMP);
     mbMapUpdated=true;
 }
 
 void Map::EraseKeyFrame(KeyFrame *pKF)
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mspKeyFrames.erase(pKF);
     mbMapUpdated=true;
 }
 
 void Map::SetReferenceMapPoints(const vector<MapPoint *> &vpMPs)
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mvpReferenceMapPoints = vpMPs;
     mbMapUpdated=true;
 }
 
 vector<KeyFrame*> Map::GetAllKeyFrames()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return vector<KeyFrame*>(mspKeyFrames.begin(),mspKeyFrames.end());
 }
 
 vector<MapPoint*> Map::GetAllMapPoints()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return vector<MapPoint*>(mspMapPoints.begin(),mspMapPoints.end());
 }
 
 int Map::MapPointsInMap()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return mspMapPoints.size();
 }
 
 int Map::KeyFramesInMap()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return mspKeyFrames.size();
 }
 
 vector<MapPoint*> Map::GetReferenceMapPoints()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return mvpReferenceMapPoints;
 }
 
 bool Map::isMapUpdated()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return mbMapUpdated;
 }
 
 void Map::SetFlagAfterBA()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mbMapUpdated=true;
 
 }
 
 void Map::ResetUpdated()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     mbMapUpdated=false;
 }
 
 unsigned int Map::GetMaxKFid()
 {
-    boost::mutex::scoped_lock lock(mMutexMap);
+    std::scoped_lock lock(mMutexMap);
     return mnMaxKFid;
 }
 

@@ -111,7 +111,7 @@ protected:
      // Best descriptor to fast matching
      cv::Mat mDescriptor;
 
-     // Reference KeyFrame
+     // Reference KeyFrame -->  keyframe that was used to create (triangulate or initialize) the MapPoint
      KeyFrame* mpRefKF;
 
      // Tracking counters

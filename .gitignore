@@ -6,5 +6,6 @@ Thirdparty/g2o/build/*
 Thirdparty/g2o/lib/*
 Thirdparty/g2o/config.h
 Data/*.txt
+Data/*.yaml
 .vscode/*
 *.txt

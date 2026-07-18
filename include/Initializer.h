@@ -30,7 +30,7 @@ namespace ORB_SLAM
 
 class Initializer
 {
-    typedef pair<int,int> Match;
+    using Match = std::pair<int, int>;
 
 public:
 
@@ -72,10 +72,10 @@ private:
     void DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat &t);
 
 
-    // Keypoints from Reference Frame (Frame 1)
+    // Keypoints(undistorted) from Reference Frame (Frame 1)
     vector<cv::KeyPoint> mvKeys1;
 
-    // Keypoints from Current Frame (Frame 2)
+    // Keypoints(undistorted) from Current Frame (Frame 2)
     vector<cv::KeyPoint> mvKeys2;
 
     // Current Matches from Reference to Current

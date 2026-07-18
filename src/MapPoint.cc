@@ -182,70 +182,69 @@ float MapPoint::GetFoundRatio()
     return static_cast<float>(mnFound)/mnVisible;
 }
 
-void MapPoint::ComputeDistinctiveDescriptors()
-{
+/* 
+    compute a representative descriptor for a MapPoint 
+    by analyzing all the image descriptors from different 
+    keyframes where this 3D point has been observed 
+*/
+void MapPoint::ComputeDistinctiveDescriptors() {
     // Retrieve all observed descriptors
     vector<cv::Mat> vDescriptors;
 
-    map<KeyFrame*,size_t> observations;
+    map<KeyFrame*, size_t> observations;
 
     {
-        boost::mutex::scoped_lock lock1(mMutexFeatures);
-        if(mbBad)
+        std::scoped_lock lock1(mMutexFeatures);
+        if (mbBad)
             return;
-        observations=mObservations;
+        observations = mObservations;
     }
 
-    if(observations.empty())
+    if (observations.empty())
         return;
 
     vDescriptors.reserve(observations.size());
 
-    for(map<KeyFrame*,size_t>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
-    {
-        KeyFrame* pKF = mit->first;
-
-        if(!pKF->isBad())
-            vDescriptors.push_back(pKF->GetDescriptor(mit->second));
+    for (const auto& observation : observations) {
+        auto pKF = observation.first;
+        if (!pKF->isBad())
+            vDescriptors.push_back(pKF->GetDescriptor(observation.second));
     }
 
-    if(vDescriptors.empty())
+    if (vDescriptors.empty())
         return;
 
     // Compute distances between them
     const size_t N = vDescriptors.size();
 
     float Distances[N][N];
-    for(size_t i=0;i<N;i++)
-    {
-        Distances[i][i]=0;
-        for(size_t j=i+1;j<N;j++)
-        {
-            int distij = ORBmatcher::DescriptorDistance(vDescriptors[i],vDescriptors[j]);
-            Distances[i][j]=distij;
-            Distances[j][i]=distij;
+    for (size_t i = 0; i < N; i++) {
+        Distances[i][i] = 0;
+        for (size_t j = i + 1; j < N; j++) {
+            int distij = ORBmatcher::DescriptorDistance(vDescriptors[i], vDescriptors[j]);
+            Distances[i][j] = distij;
+            Distances[j][i] = distij;
         }
     }
 
     // Take the descriptor with least median distance to the rest
     int BestMedian = INT_MAX;
     int BestIdx = 0;
-    for(size_t i=0;i<N;i++)
-    {
-        vector<int> vDists(Distances[i],Distances[i]+N);
-        sort(vDists.begin(),vDists.end());
-        int median = vDists[0.5*(N-1)];
+    // access Distances matrix row by row
+    for (size_t i = 0; i < N; i++) {
+        vector<int> vDists(Distances[i], Distances[i] + N); 
+        sort(vDists.begin(), vDists.end());
+        int median = vDists[0.5 * (N - 1)];
 
-        if(median<BestMedian)
-        {
+        if (median < BestMedian) {
             BestMedian = median;
             BestIdx = i;
         }
     }
 
     {
-        boost::mutex::scoped_lock lock(mMutexFeatures);
-        mDescriptor = vDescriptors[BestIdx].clone();       
+        std::scoped_lock lock(mMutexFeatures);
+        mDescriptor = vDescriptors[BestIdx].clone();
     }
 }
 
@@ -269,45 +268,48 @@ bool MapPoint::IsInKeyFrame(KeyFrame *pKF)
     boost::mutex::scoped_lock lock(mMutexFeatures);
     return (mObservations.count(pKF));
 }
-
-void MapPoint::UpdateNormalAndDepth()
-{
-    map<KeyFrame*,size_t> observations;
+/*
+    1- Updates the average viewing direction (mNormalVector) from all keyframes that see this point.
+    2- Computes the minimum and maximum useful distances for observing the point, based on the scale
+    level of its observation in the reference keyframe
+*/
+void MapPoint::UpdateNormalAndDepth() {
+    map<KeyFrame*, size_t> observations;
     KeyFrame* pRefKF;
     cv::Mat Pos;
     {
-        boost::mutex::scoped_lock lock1(mMutexFeatures);
-        boost::mutex::scoped_lock lock2(mMutexPos);
-        if(mbBad)
+        std::scoped_lock lock1(mMutexFeatures);
+        std::scoped_lock lock2(mMutexPos);
+        if (mbBad)
             return;
-        observations=mObservations;
-        pRefKF=mpRefKF;
+        observations = mObservations;
+        pRefKF = mpRefKF;
         Pos = mWorldPos.clone();
     }
 
-    cv::Mat normal = cv::Mat::zeros(3,1,CV_32F);
-    int n=0;
-    for(map<KeyFrame*,size_t>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
-    {
-        KeyFrame* pKF = mit->first;
+    // what is meant by the normal is viewing angle of the mapPoint from a keyFrame
+    cv::Mat normal = cv::Mat::zeros(3, 1, CV_32F);
+    int n = 0;
+    for (const auto& obervation : observations) {
+        KeyFrame* pKF = obervation.first;
         cv::Mat Owi = pKF->GetCameraCenter();
         cv::Mat normali = mWorldPos - Owi;
-        normal = normal + normali/cv::norm(normali);
+        normal = normal + normali / cv::norm(normali); // cv::norm(normali) = distance
         n++;
-    } 
+    }
 
     cv::Mat PC = Pos - pRefKF->GetCameraCenter();
     const float dist = cv::norm(PC);
     const int level = pRefKF->GetKeyPointScaleLevel(observations[pRefKF]);
     const float scaleFactor = pRefKF->GetScaleFactor();
-    const float levelScaleFactor =  pRefKF->GetScaleFactor(level);
+    const float levelScaleFactor = pRefKF->GetScaleFactor(level);
     const int nLevels = pRefKF->GetScaleLevels();
 
     {
-        boost::mutex::scoped_lock lock3(mMutexPos);
-        mfMinDistance = (1.0f/scaleFactor)*dist / levelScaleFactor;
-        mfMaxDistance = scaleFactor*dist * pRefKF->GetScaleFactor(nLevels-1-level);
-        mNormalVector = normal/n;
+        std::scoped_lock lock3(mMutexPos);
+        mfMinDistance = (1.0f / scaleFactor) * dist / levelScaleFactor;
+        mfMaxDistance = scaleFactor * dist * pRefKF->GetScaleFactor(nLevels - 1 - level);
+        mNormalVector = normal / n;
     }
 }
 
