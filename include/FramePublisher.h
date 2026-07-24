@@ -35,6 +35,7 @@
 namespace ORB_SLAM {
 
 class Tracking;
+enum class eTrackingState : int;
 
 class FramePublisher {
    public:
@@ -51,7 +52,7 @@ class FramePublisher {
 
     void PublishFrame();
 
-    void DrawTextInfo(cv::Mat& im, int nState, cv::Mat& imText);
+    void DrawTextInfo(cv::Mat& im, eTrackingState nState, cv::Mat& imText);
 
     cv::Mat mIm;
     vector<cv::KeyPoint> mvCurrentKeys;
@@ -66,13 +67,13 @@ class FramePublisher {
     ros::NodeHandle mNH;
     ros::Publisher mImagePub;
 
-    int mState;
+    eTrackingState mState;
 
     bool mbUpdated;
 
     Map* mpMap;
 
-    boost::mutex mMutex;
+    std::mutex mMutex;
 };
 
 }  //namespace ORB_SLAM

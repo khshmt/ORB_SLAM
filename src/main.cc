@@ -19,27 +19,26 @@
  */
 
 // STD
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <thread>
 // ROS
-#include <ros/ros.h>
 #include <ros/package.h>
+#include <ros/ros.h>
 // External Libs
 #include <opencv2/core/core.hpp>
 // ORB_SLAM
-#include "Tracking.h"
+#include "Converter.h"
 #include "FramePublisher.h"
-#include "Map.h"
-#include "MapPublisher.h"
+#include "KeyFrameDatabase.h"
 #include "LocalMapping.h"
 #include "LoopClosing.h"
-#include "KeyFrameDatabase.h"
+#include "Map.h"
+#include "MapPublisher.h"
 #include "ORBVocabulary.h"
-#include "Converter.h"
+#include "Tracking.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     ros::init(argc, argv, "ORB_SLAM");
     ros::start();
 
@@ -47,44 +46,40 @@ int main(int argc, char *argv[])
               << "ORB-SLAM Copyright (C) 2014 Raul Mur-Artal" << std::endl
               << "This program comes with ABSOLUTELY NO WARRANTY;" << std::endl
               << "This is free software, and you are welcome to redistribute it" << std::endl
-              << "under certain conditions. See LICENSE.txt." << std::endl;
+              << "under certain conditions. See LICENSE.txt.\n";
 
-    if (argc != 3)
-    {
-        cerr << std::endl
-             << "Usage: rosrun ORB_SLAM ORB_SLAM path_to_vocabulary path_to_settings (absolute or relative to package directory)" << std::endl;
+    if (argc != 3) {
+        std::cerr << std::endl
+             << "Usage: rosrun ORB_SLAM ORB_SLAM path_to_vocabulary path_to_settings (absolute or relative to package "
+                "directory)\n";
         ros::shutdown();
         return 1;
     }
 
     // Load Settings and Check
-    string strSettingsFile = ros::package::getPath("ORB_SLAM") + "/" + argv[2];
+    std::string strSettingsFile = ros::package::getPath("ORB_SLAM") + "/" + argv[2];
 
     cv::FileStorage fsSettings(strSettingsFile.c_str(), cv::FileStorage::READ);
-    if (!fsSettings.isOpened())
-    {
+    if (!fsSettings.isOpened()) {
         ROS_ERROR("Wrong path to settings. Path must be absolut or relative to ORB_SLAM package directory.");
         ros::shutdown();
         return 1;
     }
 
     // Load ORB Vocabulary
-    string strVocFile = ros::package::getPath("ORB_SLAM") + "/" + argv[1];
-    std::cout << std::endl
-              << "Loading ORB Vocabulary. This could take a while." << std::endl;
+    std::string strVocFile = ros::package::getPath("ORB_SLAM") + "/" + argv[1];
+    std::cout << std::endl << "Loading ORB Vocabulary. This could take a while.\n";
 
     ORB_SLAM::ORBVocabulary Vocabulary;
     bool bVocLoad = Vocabulary.loadFromTextFile(strVocFile);
 
-    if (!bVocLoad)
-    {
-        cerr << "Wrong path to vocabulary. Path must be absolut or relative to ORB_SLAM package directory." << std::endl;
-        cerr << "Falied to open at: " << strVocFile << std::endl;
+    if (!bVocLoad) {
+        std::cerr << "Wrong path to vocabulary. Path must be absolut or relative to ORB_SLAM package directory.\n";
+        std::cerr << "Failed to open at: " << strVocFile << std::endl;
         ros::shutdown();
         return 1;
     }
-    std::cout << "Vocabulary loaded!" << std::endl
-              << std::endl;
+    std::cout << "Vocabulary loaded!\n\n";
 
     // Create Frame Publisher for image_view
     ORB_SLAM::FramePublisher FramePub;
@@ -131,8 +126,7 @@ int main(int argc, char *argv[])
 
     ros::Rate r(fps);
 
-    while (ros::ok())
-    {
+    while (ros::ok()) {
         FramePub.Refresh();
         MapPub.Refresh();
         Tracker.CheckResetByPublishers();
@@ -140,29 +134,25 @@ int main(int argc, char *argv[])
     }
 
     // Save keyframe poses at the end of the execution
-    ofstream f;
+    std::ofstream f;
 
-    vector<ORB_SLAM::KeyFrame *> vpKFs = World.GetAllKeyFrames();
-    sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM::KeyFrame::lId);
+    auto vpKFs = World.GetAllKeyFrames();
+    std::sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM::KeyFrame::lId);
 
-    std::cout << std::endl
-              << "Saving Keyframe Trajectory to KeyFrameTrajectory.txt" << std::endl;
-    string strFile = ros::package::getPath("ORB_SLAM") + "/" + "KeyFrameTrajectory.txt";
+    std::cout << std::endl << "Saving Keyframe Trajectory to KeyFrameTrajectory.txt" << std::endl;
+    std::string strFile = ros::package::getPath("ORB_SLAM") + "/" + "KeyFrameTrajectory.txt";
     f.open(strFile.c_str());
-    f << fixed;
+    f << std::fixed;
 
-    for (size_t i = 0; i < vpKFs.size(); i++)
-    {
-        ORB_SLAM::KeyFrame *pKF = vpKFs[i];
-
+    for(const auto pKF : vpKFs ) {
         if (pKF->isBad())
             continue;
 
-        cv::Mat R = pKF->GetRotation().t();
-        vector<float> q = ORB_SLAM::Converter::toQuaternion(R);
-        cv::Mat t = pKF->GetCameraCenter();
-        f << setprecision(6) << pKF->mTimeStamp << setprecision(7) << " " << t.at<float>(0) << " " << t.at<float>(1) << " " << t.at<float>(2)
-          << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << std::endl;
+        const auto& R = pKF->GetRotation().t(); 
+        const auto& q = ORB_SLAM::Converter::toQuaternion(R);
+        const auto& t = pKF->GetCameraCenter();
+        f << std::setprecision(6) << pKF->mTimeStamp << std::setprecision(7) << " " << t.at<float>(0) << " " << t.at<float>(1)
+          << " " << t.at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << '\n';
     }
     f.close();
 
